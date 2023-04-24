@@ -1,0 +1,4 @@
+ipykernel
+torch==2.0.0
+matplotlib==3.6.1
+dysts==0.1
