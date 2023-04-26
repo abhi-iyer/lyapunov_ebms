@@ -21,6 +21,7 @@ class Args:
     dynamics_function = linear_dynamics
     state_dim = 2  # Define the dimension of the state here
     margin = 10
+    init_range = (-5,5)
     seed = 4 #TODO: add seed in random
 
 class EnergyPredictor(nn.Module):
@@ -32,8 +33,7 @@ class EnergyPredictor(nn.Module):
         ]
         for i in range(args.num_layers - 1):
             layers.append(nn.Linear(args.layer_dims[i], args.layer_dims[i + 1]))
-            if i < args.num_layers - 2:
-                layers.append(nn.ReLU())
+            layers.append(nn.ReLU())
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -75,7 +75,7 @@ def train(model, args, dynamics_fn, loss_fn):
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_scheduler_step_size, gamma=args.lr_scheduler_gamma)
 
     for epoch in tqdm(range(args.num_epochs)):
-        x_t = torch.tensor(np.random.random((args.batch_size, 2)), dtype=torch.float32)
+        x_t = torch.tensor(np.random.uniform(args.init_range[0],args.init_range[1],(args.batch_size, 2)), dtype=torch.float32)
         x_tp1 = dynamics_fn(x_t, args.dt)
         noise = np.random.normal(0, args.negative_sample_variance, (args.batch_size, 2))
         x_neg = torch.tensor(x_t.numpy() + noise, dtype=torch.float32)
@@ -182,18 +182,16 @@ def main():
 
     num_samples = 10000
     num_dims = 2  # Change this to the number of dimensions of your system
-    x_t = torch.tensor(np.random.uniform(-5,5,(num_samples, num_dims)), dtype=torch.float32, requires_grad=True)
-    dt_values = [0.01]
+    x_t = torch.tensor(np.random.uniform(args.init_range[0],args.init_range[1],(num_samples, num_dims)), dtype=torch.float32, requires_grad=True)
     num_steps = 100
 
     errors = []
-    for dt in dt_values:
-        errors.append(evaluate(model, x_t, dt, Args.dynamics_function, num_steps))
+    errors.append(evaluate(model, x_t, Args.dt, Args.dynamics_function, num_steps))
 
-    x_ranges = [np.linspace(-5, 5, 1000) for _ in range(num_dims)]
+    x_ranges = [np.linspace(args.init_range[0], args.init_range[1], 1000) for _ in range(num_dims)]
 
     plot_energy(model, x_ranges)
-    plot_errors(errors, dt_values)
+    plot_errors(errors, [Args.dt])
 
 if __name__ == "__main__":
     main()
