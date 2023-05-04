@@ -1,8 +1,11 @@
 import numpy as np
-import torch 
+import torch
+import torch.nn as nn
 from scipy.integrate import solve_ivp
+from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
+from tqdm import tqdm
 
 
 def linear_dynamics(x_t, dt):
