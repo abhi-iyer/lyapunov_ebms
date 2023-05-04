@@ -1,11 +1,4 @@
-import numpy as np
-import torch
-import torch.nn as nn
-from scipy.integrate import solve_ivp
-from scipy.integrate import odeint
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-from tqdm import tqdm
+from imports import *
 
 
 def linear_dynamics(x_t, dt):
@@ -60,6 +53,10 @@ def dampened_oscillator(m, c, k):
         xs.append(solution.y[2*i])
 
     return torch.Tensor(np.column_stack(xs)).cuda()
+
+
+def vdp_oscillator():
+    pass
 
 
 def generate_batch(x, bs):
