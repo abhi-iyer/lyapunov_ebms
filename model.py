@@ -15,13 +15,15 @@ class EBM(nn.Module):
         super().__init__()
         
         self.phi = nn.Sequential(
-            nn.Linear(input_shape, 4*input_shape),
+            nn.Linear(input_shape, 2*input_shape),
             nn.ReLU(),
-            nn.Linear(4*input_shape, 8*input_shape),
+            nn.Linear(2*input_shape, 8*input_shape),
             nn.ReLU(),
             nn.Linear(8*input_shape, 16*input_shape),
             nn.ReLU(),
-            nn.Linear(16*input_shape, 16*input_shape),
+            nn.Linear(16*input_shape, 32*input_shape),
+            nn.ReLU(),
+            nn.Linear(32*input_shape, 32*input_shape),
             DotProduct()
         )
 

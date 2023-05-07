@@ -55,8 +55,34 @@ def dampened_oscillator(m, c, k):
     return torch.Tensor(np.column_stack(xs)).cuda()
 
 
-def vdp_oscillator():
-    pass
+def vdp_oscillator(dim, mu, seed=-1):
+    def van_der_pol_oscillator(dim, mu):
+        def vdp_equations(y, t, mu):
+            dydt = np.zeros(dim * 2)
+            for i in range(0, dim * 2, 2):
+                dydt[i] = y[i + 1]
+                dydt[i + 1] = mu * (1 - y[i]**2) * y[i + 1] - y[i]
+            return dydt
+
+        return vdp_equations
+
+    # initial conditions
+    if seed != -1:
+        np.random.seed(seed)
+    x0 = np.random.rand(dim * 2) * 10
+
+    t_span = (0, 30)
+    t = np.linspace(t_span[0], t_span[1], 200)
+
+    # solve the Van der Pol oscillator differential equations
+    vdp = van_der_pol_oscillator(dim, mu)
+    solution = odeint(vdp, x0, t, args=(mu,))
+
+    xs = []
+    for i in range(dim):
+        xs.append(solution[:, i * 2])
+    
+    return torch.Tensor(np.column_stack(xs)).cuda()
 
 
 def generate_batch(x, bs):
