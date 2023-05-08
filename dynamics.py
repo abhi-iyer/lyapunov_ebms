@@ -39,8 +39,6 @@ def dampened_oscillator(m, c, k):
     
     dim = len(c)
     
-    # x0 = np.array([1.0,] * dim)
-    # x_dot0 = np.array([0.0,] * dim)
     x0 = np.random.rand(dim)
     x_dot0 = np.random.rand(dim)
     
@@ -58,7 +56,7 @@ def dampened_oscillator(m, c, k):
     return torch.Tensor(np.column_stack(xs)).cuda()
 
 
-def vdp_oscillator(dim, mu, seed=-1):
+def vdp_oscillator(dim, mu):
     def van_der_pol_oscillator(dim, mu):
         def vdp_equations(y, t, mu):
             dydt = np.zeros(dim * 2)
@@ -70,12 +68,10 @@ def vdp_oscillator(dim, mu, seed=-1):
         return vdp_equations
 
     # initial conditions
-    if seed != -1:
-        np.random.seed(seed)
-    x0 = np.random.rand(dim * 2) * 10
+    x0 = np.random.rand(dim * 2)
 
-    t_span = (0, 30)
-    t = np.linspace(t_span[0], t_span[1], 200)
+    t_span = (0, 25)
+    t = np.linspace(t_span[0], t_span[1], 500)
 
     # solve the Van der Pol oscillator differential equations
     vdp = van_der_pol_oscillator(dim, mu)
