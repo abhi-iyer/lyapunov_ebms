@@ -39,8 +39,11 @@ def dampened_oscillator(m, c, k):
     
     dim = len(c)
     
-    x0 = np.array([1.0,] * dim)
-    x_dot0 = np.array([0.0,] * dim)
+    # x0 = np.array([1.0,] * dim)
+    # x_dot0 = np.array([0.0,] * dim)
+    x0 = np.random.rand(dim)
+    x_dot0 = np.random.rand(dim)
+    
     state = np.column_stack((x0, x_dot0)).flatten()
 
     t_span = (0, 50)
