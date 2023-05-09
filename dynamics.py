@@ -70,8 +70,8 @@ def vdp_oscillator(dim, mu):
     # initial conditions
     x0 = np.random.rand(dim * 2)
 
-    t_span = (0, 25)
-    t = np.linspace(t_span[0], t_span[1], 500)
+    t_span = (0, 50)
+    t = np.linspace(t_span[0], t_span[1], 1000)
 
     # solve the Van der Pol oscillator differential equations
     vdp = van_der_pol_oscillator(dim, mu)
