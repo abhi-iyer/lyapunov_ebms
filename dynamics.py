@@ -24,7 +24,7 @@ def linear_1d(x_t,dt):
     return x_t + dt * -x_t
 
 
-def dampened_oscillator(m, c, k):
+def dampened_oscillator(m, c, k, seed):
     def func(t, state, m, c, k):
         dim = len(c)
         state = state.reshape(dim, 2)
@@ -39,24 +39,25 @@ def dampened_oscillator(m, c, k):
     
     dim = len(c)
     
-    x0 = np.random.rand(dim)
-    x_dot0 = np.random.rand(dim)
-    
-    state = np.column_stack((x0, x_dot0)).flatten()
+    # initial conditions
+    torch.manual_seed(seed)
+    x0 = torch.rand(dim * 2).numpy()
 
     t_span = (0, 50)
     t_eval = np.linspace(t_span[0], t_span[1], 1000)
 
-    solution = solve_ivp(func, t_span, state, args=(m, c, k), t_eval=t_eval, rtol=1e-6, atol=1e-6)
+    solution = solve_ivp(func, t_span, x0, args=(m, c, k), t_eval=t_eval, rtol=1e-6, atol=1e-6)
 
     xs = []
+    x_dots = []
     for i in range(dim):
-        xs.append(solution.y[2*i])
+        xs.append(solution.y[2*i, :])
+        x_dots.append(solution.y[2*i + 1, :])
 
-    return torch.Tensor(np.column_stack(xs)).cuda()
+    return torch.Tensor(np.hstack((np.column_stack(xs), np.column_stack(x_dots)))).cuda(), t_span[1]/len(t_eval)
 
 
-def vdp_oscillator(dim, mu):
+def vdp_oscillator(dim, mu, seed):
     def van_der_pol_oscillator(dim, mu):
         def vdp_equations(y, t, mu):
             dydt = np.zeros(dim * 2)
@@ -68,26 +69,23 @@ def vdp_oscillator(dim, mu):
         return vdp_equations
 
     # initial conditions
-    x0 = np.random.rand(dim * 2)
+    torch.manual_seed(seed)
+    x0 = torch.rand(dim * 2).numpy()
 
     t_span = (0, 50)
-    t = np.linspace(t_span[0], t_span[1], 500)
+    t_eval = np.linspace(t_span[0], t_span[1], 1000)
 
     # solve the Van der Pol oscillator differential equations
     vdp = van_der_pol_oscillator(dim, mu)
-    solution = odeint(vdp, x0, t, args=(mu,))
+    solution = odeint(vdp, x0, t_eval, args=(mu,))
 
     xs = []
+    x_dots = []
     for i in range(dim):
-        xs.append(solution[:, i * 2])
-    
-    return torch.Tensor(np.column_stack(xs)).cuda()
+        xs.append(solution[:, 2*i])
+        x_dots.append(solution[:, 2*i + 1])
 
-
-def generate_batch(x, bs):
-    i = np.random.randint(0, x.shape[0] - bs + 1, size=(1,)).item()
-
-    return x[i : i + bs, :]
+    return torch.Tensor(np.hstack((np.column_stack(xs), np.column_stack(x_dots)))).cuda(), t_span[1]/len(t_eval)
 
 
 def generate_negative_samples(x, angle, num_samples):
@@ -107,9 +105,25 @@ def generate_negative_samples(x, angle, num_samples):
 
 def plot_3d(x):
     fig = plt.figure()
+    plt.tight_layout()
     ax = plt.axes(projection='3d')
  
     ax.plot3D(np.arange(x.shape[0]), x[:, 0], x[:, 1], alpha=1.0)
     ax.set_xlabel("time")
-    ax.set_ylabel("dim 1")
-    ax.set_zlabel("dim 2")
+    ax.set_ylabel("$x$")
+    ax.set_zlabel("$\dot{x}$")
+
+ 
+def plot_3d_trajectory(actual, pred):
+    fig = plt.figure()
+    plt.tight_layout()
+    ax = plt.axes(projection='3d')
+
+    ax.plot3D(np.arange(actual.shape[0]), actual[:, 0], actual[:, 1], alpha=1.0, color='blue', label='true')
+    ax.plot3D(np.arange(pred.shape[0]), pred[:, 0], pred[:, 1], alpha=1.0, color='purple', label='pred')
+
+    ax.set_xlabel("time")
+    ax.set_ylabel("$x$")
+    ax.set_zlabel("$\dot{x}$")
+
+    ax.legend()
